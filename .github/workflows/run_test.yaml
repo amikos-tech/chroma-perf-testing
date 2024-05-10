@@ -1,0 +1,63 @@
+name: "Perf Test"
+on:
+  workflow_dispatch:
+
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: "Performance Test ${{ matrix.dataset }}"
+    timeout-minutes: 90
+    strategy:
+      matrix:
+        dataset:  ["chroma-custom"] #[ "chroma-perf-100k", "chroma-perf-250k", "chroma-perf-500k", "chroma-perf-1M" ]
+    runs-on: chroma
+    # Use the Bash shell regardless whether the GitHub Actions runner is ubuntu-latest, macos-latest, or windows-latest
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      # Checkout the repository to the GitHub Actions runner
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v2
+        with:
+          python-version: "3.11"
+      - name: Setup Poetry
+        run: |
+          set -e
+          curl -sSL https://install.python-poetry.org | python3 -
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: eu-west-1 # configurable
+
+      - name: Clone Chroma Repo
+        run: |
+          set -e
+          git clone https://github.com/chroma-core/chroma.git
+      - name: Pull dataset
+        run: |
+          set -e
+          aws s3 cp s3://chroma-perf-datasets/${{ matrix.dataset }}.tar.gz .
+          tar -xvf ${{ matrix.dataset }}.tar.gz -C ./chroma-data/
+        working-directory: chroma
+      - name: Docker compose
+        run: |
+          set -e
+          docker-compose up -d --build
+        working-directory: chroma
+      - name: Install dependencies
+        run: |
+          set -e
+          poetry update
+#      - name: Run tests
+#        run: |
+#          set -e
+#          poetry run python bin/perf_test.py --dataset ./chroma-data/
