@@ -53,7 +53,7 @@ jobs:
       - name: Docker compose
         run: |
           set -e
-          docker-compose up -d --build
+          docker compose up -d --build
         working-directory: chroma
       - name: Install dependencies
         run: |
@@ -73,4 +73,4 @@ jobs:
         if: always()
         run: |
           set -e
-          docker-compose down --volumes
+          docker compose down --volumes
