@@ -63,3 +63,8 @@ jobs:
 #        run: |
 #          set -e
 #          poetry run python bin/perf_test.py --dataset ./chroma-data/
+      - name: Cleanup docker compose
+        if: always()
+        run: |
+          set -e
+          docker-compose down --volumes
