@@ -59,6 +59,11 @@ jobs:
           set -e
           export PATH="$HOME/.local/bin:$PATH" #hacky but works
           poetry update
+      - name: Verify Chroma
+        run: |
+          set -e
+          curl -v http://localhost:8000/api/v1
+          curl -v http://localhost:8000/api/v1/collections
 #      - name: Run tests
 #        run: |
 #          set -e
