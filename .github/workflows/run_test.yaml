@@ -57,6 +57,7 @@ jobs:
       - name: Install dependencies
         run: |
           set -e
+          export PATH="$HOME/.local/bin:$PATH" #hacky but works
           poetry update
 #      - name: Run tests
 #        run: |
