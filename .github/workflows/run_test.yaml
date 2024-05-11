@@ -37,10 +37,10 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: eu-west-1 # configurable
-
       - name: Clone Chroma Repo
         run: |
           set -e
+          rm -rf chroma # remove the existing repo
           git clone https://github.com/chroma-core/chroma.git
       - name: Pull dataset
         run: |
@@ -49,7 +49,6 @@ jobs:
           mkdir -p ./chroma-data
           tar -xvf ${{ matrix.dataset }}.tar.gz -C ./chroma-data/ --strip-components=2
           tree ./chroma-data/
-        working-directory: chroma
       - name: Docker compose
         run: |
           set -e
