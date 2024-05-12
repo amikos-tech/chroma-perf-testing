@@ -73,6 +73,7 @@ jobs:
       - name: Run tests
         run: |
           set -e
+          export PATH="$HOME/.local/bin:$PATH" #hacky but works
           echo "Running perf tests"
           rm -rf ./results/
           mkdir -p ./results/
