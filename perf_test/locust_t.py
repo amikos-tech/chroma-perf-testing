@@ -1,3 +1,4 @@
+import json
 import os
 import random
 import time
@@ -29,13 +30,14 @@ class UserBehavior(User):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         try:
-            self._session = requests.Session()
 
-            # self.client = chromadb.HttpClient(host=self.environment.parsed_options.chroma_host,
-            #                                   port=self.environment.parsed_options.port,
-            #                                   settings=Settings(anonymized_telemetry=False,
-            #                                                     chroma_client_auth_provider=provider,
-            #                                                     chroma_client_auth_credentials=credentials))
+            self.client = chromadb.HttpClient(host=self.environment.parsed_options.chroma_host,
+                                              port=self.environment.parsed_options.port,)
+            data_str = os.getenv('LOCUST_JSON')
+            data = json.loads(data_str)
+            self.query = data['query']
+            self.id = data['id']
+            self.collection = self.client.get_collection("test")
 
 
         except Exception as e:
@@ -43,22 +45,14 @@ class UserBehavior(User):
             raise e
 
     def on_start(self):
-        print(self.environment.parsed_options.auth_type)
-        if self.environment.parsed_options.auth_type == "basic":
-            credentials = self.environment.parsed_options.auth_credentials
-            encoded_creds = b64encode(bytes(f'{credentials}', 'utf-8')).decode('utf-8')
-            self._session.headers.update({"Authorization": f"Basic {encoded_creds}"})
-            print(f"Basic {encoded_creds}")
-        if self.environment.parsed_options.auth_type == "token":
-            credentials = self.environment.parsed_options.auth_credentials
-            self._session.headers.update({"Authorization": f"Bearer {credentials}"})
+        print("Starting up")
 
     @task
-    def list_collections(self):
+    def collection_get(self):
         start_time = time.perf_counter()
         req_metadata = {
             "request_type": "chroma",
-            "name": "list_collections",
+            "name": "collection_get",
             "start_time": start_time,
             "response_length": 0,
             "response": None,
@@ -66,8 +60,7 @@ class UserBehavior(User):
             "exception": None,
         }
         try:
-            self._session.get(
-                f"http://{self.environment.parsed_options.chroma_host}:{self.environment.parsed_options.port}/api/v1/collections")
+            self.collection.get(where=self.query)
             total_time = int((time.perf_counter() - start_time) * 1000)
             req_metadata["response_time"] = total_time
             events.request.fire(**req_metadata)
