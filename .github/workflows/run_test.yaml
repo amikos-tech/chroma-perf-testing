@@ -80,7 +80,6 @@ jobs:
       - name: Create diagrams
         run: |
           set -e
-#          poetry run python bin/perf_diagrams.py --dataset ./chroma-data/
           echo "Creating diagrams"
       - name: Cleanup docker compose
         if: always()
