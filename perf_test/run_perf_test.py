@@ -12,7 +12,7 @@ def run_locust_with_env(jsonl_file, output_dir):
             # Convert dictionary back to JSON string for the environment variable
             env_var = json.dumps(data)
             # Set the environment variable
-            env = {"LOCUST_JSON": env_var}
+            env = {"LOCUST_JSON": env_var, "PATH": f"{os.getenv('HOME')}/.local/bin:{os.getenv('PATH')}"}
             # Run locust using subprocess
             print(f"Starting single user test for : {data['id']}")
             command = ['poetry', 'run', 'locust', '-f', 'perf_test/locust_t.py', '--headless', '-u', '1', '-r', '1',
