@@ -47,7 +47,7 @@ jobs:
           set -e
           aws s3 cp s3://chroma-perf-datasets/${{ matrix.dataset }}.tar.gz .
           mkdir -p ./chroma-data
-          tar -xvf ${{ matrix.dataset }}.tar.gz -C ./chroma-data/ --strip-components=2
+          tar -xvf ${{ matrix.dataset }}.tar.gz -C ./chroma-data/
           tree ./chroma-data/
       - name: Docker compose
         run: |
