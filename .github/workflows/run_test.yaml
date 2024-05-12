@@ -58,15 +58,30 @@ jobs:
           set -e
           export PATH="$HOME/.local/bin:$PATH" #hacky but works
           poetry update
-      - name: Verify Chroma
+      - name: Verify Data and Warmup
         run: |
           set -e
           curl -v http://localhost:8000/api/v1
           curl -v http://localhost:8000/api/v1/collections
-#      - name: Run tests
-#        run: |
-#          set -e
-#          poetry run python bin/perf_test.py --dataset ./chroma-data/
+          COLLECTION_ID=$(curl -v http://localhost:8000/api/v1/collections | jq -r '.[0].id')
+          [[ -z "$COLLECTION_ID" ]] && exit 1
+          echo "Warming up"
+          curl -X 'POST' \
+            "http://localhost:8000/api/v1/collections/${COLLECTION_ID}" \
+            -H 'accept: application/json' \
+            -d '{"include":["embeddings"],"limit":1}'
+      - name: Run tests
+        run: |
+          set -e
+          echo "Running perf tests"
+          rm -rf ./results/
+          mkdir -p ./results/
+          poetry run python perf_test/run_perf_test.py --queries-file ./chroma-data/queries.json --output-path ./results/
+      - name: Create diagrams
+        run: |
+          set -e
+#          poetry run python bin/perf_diagrams.py --dataset ./chroma-data/
+          echo "Creating diagrams"
       - name: Cleanup docker compose
         if: always()
         run: |
