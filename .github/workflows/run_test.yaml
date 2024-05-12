@@ -76,7 +76,7 @@ jobs:
           echo "Running perf tests"
           rm -rf ./results/
           mkdir -p ./results/
-          poetry run python perf_test/run_perf_test.py --queries-file ./chroma-data/queries.json --output-path ./results/
+          poetry run python perf_test/run_perf_test.py --queries-file ./chroma-data/queries.jsonl --output-path ./results/
       - name: Create diagrams
         run: |
           set -e
