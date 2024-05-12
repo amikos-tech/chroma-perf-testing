@@ -86,4 +86,7 @@ jobs:
         if: always()
         run: |
           set -e
+          rm -rf ./chroma-data
+          rm -rf ./chroma
+          # rm -rf ./results
           docker compose down --volumes
