@@ -80,4 +80,4 @@ if __name__ == "__main__":
     ar.add_argument("--results-dir", type=str, required=True, help="Path to the results directory")
     ar.add_argument("--results-file", type=str, required=True, help="Path to the merged results file.")
     a = ar.parse_args()
-    generate_graphs(a.result_dir, a.results_file)
+    generate_graphs(a.results_dir, a.results_file)

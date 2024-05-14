@@ -12,7 +12,7 @@ jobs:
     timeout-minutes: 240
     strategy:
       matrix:
-        dataset:  ["testds-100k"] #[ "chroma-perf-100k", "chroma-perf-250k", "chroma-perf-500k", "chroma-perf-1M" ]
+        dataset:  ["testds-100k","testds-250k","testds-500k"] #[ "chroma-perf-100k", "chroma-perf-250k", "chroma-perf-500k", "chroma-perf-1M" ]
     runs-on: chroma
     # Use the Bash shell regardless whether the GitHub Actions runner is ubuntu-latest, macos-latest, or windows-latest
     defaults:
