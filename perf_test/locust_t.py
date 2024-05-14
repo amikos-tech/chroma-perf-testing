@@ -32,7 +32,8 @@ class UserBehavior(User):
         try:
 
             self.client = chromadb.HttpClient(host=self.environment.parsed_options.chroma_host,
-                                              port=self.environment.parsed_options.port,)
+                                              port=self.environment.parsed_options.port,
+                                              settings=Settings(anonymized_telemetry=False))
             data_str = os.getenv('LOCUST_JSON')
             data = json.loads(data_str)
             self.query = data['query']
