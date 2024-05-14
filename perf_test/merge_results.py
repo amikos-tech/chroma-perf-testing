@@ -5,7 +5,7 @@ import pandas as pd
 import glob
 
 
-def merge_csv(input_dir: str):
+def merge_csv(input_dir: str, dataset_name: str)->None:
     if not os.path.exists(input_dir):
         raise FileNotFoundError(f"Results directory {input_dir} does not exist.")
     # Define the path to your CSV files
@@ -33,11 +33,12 @@ def merge_csv(input_dir: str):
     merged_df = pd.concat(dataframes, ignore_index=True)
 
     # Optionally, save the merged DataFrame to a new CSV file
-    merged_df.to_parquet(os.path.join(input_dir, 'merged_locust_data.parquet'), index=False)
+    merged_df.to_parquet(os.path.join(input_dir, f'{dataset_name}_merged_locust_data.parquet'), index=False)
 
 
 if __name__ == "__main__":
     ar = argparse.ArgumentParser()
     ar.add_argument("--results-dir", type=str, required=True, help="Path to the results directory")
+    ar.add_argument("--dataset-name", type=str, required=True, help="Name of the dataset")
     a = ar.parse_args()
-    merge_csv(a.results_dir)
+    merge_csv(a.results_dir, a.dataset_name)

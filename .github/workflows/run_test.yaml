@@ -85,14 +85,20 @@ jobs:
           set -e
           export PATH="$HOME/.local/bin:$PATH" #hacky but works
           echo "Merging results"
-          poetry run python perf_test/merge_results.py --results-dir ./results/
+          poetry run python perf_test/merge_results.py --results-dir ./results/ --dataset-name ${{ matrix.dataset }}
+      - name: Generate Graphs
+        run: |
+          set -e
+          export PATH="$HOME/.local/bin:$PATH" #hacky but works
+          echo "Generating graphs"
+          poetry run python perf_test/generate_graphs.py --results-dir ./results/ --results-file ./results/${{ matrix.dataset }}_merged_locust_data.parquet
       - name: Compress directory
         run: tar -zcvf results.tar.gz ./results/
       - name: Upload results artifact
         uses: actions/upload-artifact@v2
         with:
           name: results
-          path: results.tar.gz
+          path: results_${{matrix.dataset}}.tar.gz
       - name: Cleanup docker compose
         if: always()
         run: |
