@@ -53,7 +53,7 @@ class UserBehavior(User):
         start_time = time.perf_counter()
         req_metadata = {
             "request_type": "chroma",
-            "name": "collection_get",
+            "name": f"{self.id}",
             "start_time": start_time,
             "response_length": 0,
             "response": None,
