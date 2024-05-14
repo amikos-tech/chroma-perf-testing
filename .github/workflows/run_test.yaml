@@ -9,10 +9,10 @@ permissions:
 jobs:
   test:
     name: "Performance Test ${{ matrix.dataset }}"
-    timeout-minutes: 90
+    timeout-minutes: 240
     strategy:
       matrix:
-        dataset:  ["chroma-custom"] #[ "chroma-perf-100k", "chroma-perf-250k", "chroma-perf-500k", "chroma-perf-1M" ]
+        dataset:  ["testds-100k"] #[ "chroma-perf-100k", "chroma-perf-250k", "chroma-perf-500k", "chroma-perf-1M" ]
     runs-on: chroma
     # Use the Bash shell regardless whether the GitHub Actions runner is ubuntu-latest, macos-latest, or windows-latest
     defaults:
@@ -78,10 +78,17 @@ jobs:
           rm -rf ./results/
           mkdir -p ./results/
           poetry run python perf_test/run_perf_test.py --queries-file ./chroma-data/queries.jsonl --output-path ./results/
-      - name: Create diagrams
+      - name: Merge results
         run: |
           set -e
-          echo "Creating diagrams"
+          poetry run python perf_test/merge_results.py --results-dir ./results/
+      - name: Compress directory
+        run: tar -zcvf results.tar.gz ./results/
+      - name: Upload results artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: results
+          path: results.tar.gz
       - name: Cleanup docker compose
         if: always()
         run: |
