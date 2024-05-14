@@ -21,7 +21,7 @@ def run_locust_with_env(jsonl_file, output_dir):
                        '-u', '1',
                        '-r', '1',
                        '--run-time', os.getenv("PERF_TEST_DURATION", "1m"),
-                       f"--csv={output_dir}/results_single_${data['id']}"]
+                       f"--csv={output_dir}/results_single_{data['id']}"]
             subprocess.run(command, env=env)
             command = ['poetry', 'run', 'locust',
                        '-f', 'perf_test/locust_t.py',
@@ -30,7 +30,7 @@ def run_locust_with_env(jsonl_file, output_dir):
                        '-u', os.getenv("PERF_TEST_CONCURRENT_USERS", "5"),
                        '-r', '1',
                        '--run-time', os.getenv("PERF_TEST_DURATION", "1m"),
-                       f"--csv={output_dir}/results_multi_${data['id']}"]
+                       f"--csv={output_dir}/results_multi_{data['id']}"]
             subprocess.run(command, env=env)
 
 

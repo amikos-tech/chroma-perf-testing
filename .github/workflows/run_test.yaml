@@ -78,9 +78,13 @@ jobs:
           rm -rf ./results/
           mkdir -p ./results/
           poetry run python perf_test/run_perf_test.py --queries-file ./chroma-data/queries.jsonl --output-path ./results/
+        env:
+          PERF_TEST_DURATION: "15s"
       - name: Merge results
         run: |
           set -e
+          export PATH="$HOME/.local/bin:$PATH" #hacky but works
+          echo "Merging results"
           poetry run python perf_test/merge_results.py --results-dir ./results/
       - name: Compress directory
         run: tar -zcvf results.tar.gz ./results/

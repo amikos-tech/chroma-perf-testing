@@ -9,7 +9,7 @@ def merge_csv(input_dir: str):
     if not os.path.exists(input_dir):
         raise FileNotFoundError(f"Results directory {input_dir} does not exist.")
     # Define the path to your CSV files
-    csv_files_path = os.path.join(input_dir, '*.csv')
+    csv_files_path = os.path.join(input_dir, '*_stats.csv')
 
     # List all CSV files in the specified path
     csv_files = glob.glob(csv_files_path)
