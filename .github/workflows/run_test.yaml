@@ -93,11 +93,11 @@ jobs:
           echo "Generating graphs"
           poetry run python perf_test/generate_graphs.py --results-dir ./results/ --results-file ./results/${{ matrix.dataset }}_merged_locust_data.parquet
       - name: Compress directory
-        run: tar -zcvf results.tar.gz ./results/
+        run: tar -zcvf results_${{matrix.dataset}}.tar.gz ./results/
       - name: Upload results artifact
         uses: actions/upload-artifact@v2
         with:
-          name: results
+          name: results-${{matrix.dataset}}
           path: results_${{matrix.dataset}}.tar.gz
       - name: Cleanup docker compose
         if: always()
