@@ -27,7 +27,7 @@ def merge_csv(input_dir: str, dataset_name: str)->None:
         # Add a column for the file name or a tag
         df['tag'] = csv_file.split('/')[-1]  # You can modify this to add a more meaningful tag
         # Append the DataFrame to the list
-        dataframes.append(df)
+        dataframes.append(df.iloc[0])
 
     # Concatenate all DataFrames into a single DataFrame
     merged_df = pd.concat(dataframes, ignore_index=True)

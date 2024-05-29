@@ -38,6 +38,15 @@ def generate_graphs(result_dir: str, file_path: str) -> None:
     plt.xticks(rotation=90)
     plt.savefig(f'{os.path.join(result_dir, "plots", "median_response_time_by_name.png")}')
 
+    # Box Plot of Median Response Time by Name
+    plt.figure(figsize=(12, 6))
+    sns.boxplot(x='Name', y='Median Response Time', data=df)
+    plt.title('Median Response Times by Name')
+    plt.xlabel('Tag')
+    plt.ylabel('Median Response Time')
+    plt.xticks(rotation=90)
+    plt.savefig(f'{os.path.join(result_dir, "plots", "median_response_time_by_tag.png")}')
+
     # Bar Plot of Request Count by Name
     plt.figure(figsize=(14, 7))
     sns.barplot(x='Name', y='Request Count', data=df)

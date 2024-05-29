@@ -12,7 +12,9 @@ jobs:
     timeout-minutes: 240
     strategy:
       matrix:
-        dataset:  ["testds-100k","testds-250k","testds-500k"] #[ "chroma-perf-100k", "chroma-perf-250k", "chroma-perf-500k", "chroma-perf-1M" ]
+        dataset:  ["testds-100k","testds-250k","testds-500k", "testds-1M","testds-5M"] #[ "chroma-perf-100k", "chroma-perf-250k", "chroma-perf-500k", "chroma-perf-1M" ]
+#        chroma_version: ["0.5.0","main"]
+#        config: ["docker","cli"]
     runs-on: chroma
     # Use the Bash shell regardless whether the GitHub Actions runner is ubuntu-latest, macos-latest, or windows-latest
     defaults:
@@ -65,7 +67,7 @@ jobs:
           curl -v http://localhost:8000/api/v1/collections
           COLLECTION_ID=$(curl -v http://localhost:8000/api/v1/collections | jq -r '.[0].id')
           [[ -z "$COLLECTION_ID" ]] && exit 1
-          echo "Warming up"
+          echo "Warming up with a query"
           curl -X 'POST' \
             "http://localhost:8000/api/v1/collections/${COLLECTION_ID}" \
             -H 'accept: application/json' \
@@ -80,30 +82,50 @@ jobs:
           poetry run python perf_test/run_perf_test.py --queries-file ./chroma-data/queries.jsonl --output-path ./results/
         env:
           PERF_TEST_DURATION: "15s"
+          PERF_TEST_DATASET: ${{ matrix.dataset }}
+          PERF_TEST_RUN_ID: ${{ github.run_id }}
       - name: Merge results
+        if: false
         run: |
           set -e
           export PATH="$HOME/.local/bin:$PATH" #hacky but works
           echo "Merging results"
-          poetry run python perf_test/merge_results.py --results-dir ./results/ --dataset-name ${{ matrix.dataset }}
+          poetry run python perf_test/merge_results.py --queries-file ./chroma-data/queries.jsonl --results-dir ./results/ --dataset-name ${{ matrix.dataset }}
       - name: Generate Graphs
+        if: false
         run: |
           set -e
           export PATH="$HOME/.local/bin:$PATH" #hacky but works
           echo "Generating graphs"
           poetry run python perf_test/generate_graphs.py --results-dir ./results/ --results-file ./results/${{ matrix.dataset }}_merged_locust_data.parquet
-      - name: Compress directory
-        run: tar -zcvf results_${{matrix.dataset}}.tar.gz ./results/
-      - name: Upload results artifact
-        uses: actions/upload-artifact@v2
-        with:
-          name: results-${{matrix.dataset}}
-          path: results_${{matrix.dataset}}.tar.gz
       - name: Cleanup docker compose
         if: always()
         run: |
           set -e
           sudo rm -rf ./chroma-data
           sudo rm -rf ./chroma
-          # rm -rf ./results
+          rm -rf ./results
           docker compose down --volumes
+  upload-results:
+    name: "Upload Results"
+    runs-on: chroma
+    # Use the Bash shell regardless whether the GitHub Actions runner is ubuntu-latest, macos-latest, or windows-latest
+    defaults:
+      run:
+        shell: bash
+    needs: test
+    steps:
+      - name: Compress parquet file
+        run: tar -zcvf results.tar.gz merged_locust_data.parquet
+      - name: Upload results to S3
+        run: |
+          set -e
+          aws s3 cp results.tar.gz s3://chroma-perf-results/${{ github.run_id }}/${{ matrix.dataset }}/results.tar.gz
+      - name: Upload results artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: results
+          path: results.tar.gz
+      - name: Cleanup
+        if: always()
+        run: rm -rf results.tar.gz

@@ -4,7 +4,7 @@ import random
 import time
 import uuid
 from base64 import b64encode
-
+import pandas as pd
 import requests
 
 from chromadb import Settings
@@ -21,7 +21,9 @@ def _(parser):
                         help="Chroma port")
     parser.add_argument("--auth-type", type=str, default=os.getenv("CHROMA_AUTH_TYPE"), )
     parser.add_argument("--auth-credentials", type=str, default=os.getenv("CHROMA_AUTH_CREDENTIALS"), )
-    parser.add_argument("--dataset", type=str, default=os.getenv("CHROMA_DATASET"), )
+    parser.add_argument("--dataset", type=str, default=os.getenv("PERF_TEST_DATASET","unknown"), )
+    parser.add_argument("--test-run-id", type=str, default=os.getenv("PERF_TEST_RUN_ID","local"), )
+    parser.add_argument("--config-id", type=str, default=os.getenv("CHROMA_CONFIG_ID","local"), )
 
 
 class UserBehavior(User):
@@ -38,7 +40,9 @@ class UserBehavior(User):
             data = json.loads(data_str)
             self.query = data['query']
             self.id = data['id']
+            self.tags = data['tags']
             self.collection = self.client.get_collection("test")
+            self.user_id = str(uuid.uuid4())
 
 
         except Exception as e:
@@ -57,7 +61,14 @@ class UserBehavior(User):
             "start_time": start_time,
             "response_length": 0,
             "response": None,
-            "context": {},  # see HttpUser if you actually want to implement contexts
+            "context": {
+                "query": json.dumps(self.query),
+                "tags": json.dumps(self.tags),
+                "user_id": self.user_id,
+                "dataset": self.environment.parsed_options.dataset,
+                "test_run_id": self.environment.parsed_options.test_run_id,
+                "config_id": self.environment.parsed_options.config_id,
+            },
             "exception": None,
         }
         try:
@@ -68,5 +79,36 @@ class UserBehavior(User):
         except Exception as e:
             total_time = int((time.perf_counter() - start_time) * 1000)
             req_metadata["response_time"] = total_time
-            req_metadata["exception"] = e
+            req_metadata["exception"] = str(e)
             events.request.fire(**req_metadata)
+
+
+stats_data = []
+
+
+@events.request.add_listener
+def on_request(request_type, name, response_time, response_length, response, context, exception, **kwargs):
+    stats_data.append({
+        "user_id": context.get("user_id"),
+        "request_type": request_type,
+        "name": name,
+        "query": context.get("query"),
+        "tags": json.loads(context.get("tags")),
+        "response_time": response_time,
+        "response_length": response_length,
+        "exception": exception,
+        "dataset": context.get("dataset"),
+        "test_run_id": context.get("test_run_id"),
+        "config_id": context.get("config_id"),
+    })
+
+
+@events.quitting.add_listener
+def save_stats_to_dataframe(environment):
+    df_merged = pd.DataFrame()
+    if os.path.exists('merged_locust_data.parquet'):
+        df_merged = pd.read_parquet('merged_locust_data.parquet')
+    df = pd.DataFrame(stats_data)
+    # Save DataFrame to a CSV file
+    df_merged = pd.concat([df_merged, df], ignore_index=True)
+    df_merged.to_parquet('merged_locust_data.parquet', index=False)

@@ -13,6 +13,7 @@ def run_locust_with_env(jsonl_file, output_dir):
             env_var = json.dumps(data)
             # Set the environment variable
             env = {"LOCUST_JSON": env_var, "PATH": f"{os.getenv('HOME')}/.local/bin:{os.getenv('PATH')}"}
+            env.update(os.environ)
             # Run locust using subprocess
             command = ['poetry', 'run', 'locust',
                        '-f', 'perf_test/locust_t.py',
