@@ -6,6 +6,10 @@ on:
         description: 'Reset the results'
         required: false
         default: 'false'
+      test-duration:
+        description: 'Duration of the test'
+        required: false
+        default: '60s'
 
 
 permissions:
@@ -96,7 +100,7 @@ jobs:
           mkdir -p ./results/
           poetry run python perf_test/run_perf_test.py --queries-file ./chroma-data/queries.jsonl --output-path ./results/
         env:
-          PERF_TEST_DURATION: "15s"
+          PERF_TEST_DURATION: ${{ github.event.inputs.test-duration }}
           PERF_TEST_DATASET: ${{ matrix.dataset }}
           PERF_TEST_RUN_ID: ${{ github.run_id }}
       - name: Upload results to S3
