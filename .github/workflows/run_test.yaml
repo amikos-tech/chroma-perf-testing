@@ -123,6 +123,7 @@ jobs:
           PERF_TEST_DATASET: ${{ matrix.dataset }}
           PERF_TEST_RUN_ID: ${{ github.run_id }}
           CHROMA_CONFIG_ID: ${{ github.event.input.docker-compose-file }}
+          CHROMA_VERSION: ${{ github.event.input.chroma-version }}
       - name: Upload results to S3
         run: |
           set -e
