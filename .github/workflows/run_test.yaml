@@ -3,14 +3,33 @@ on:
   workflow_dispatch:
     inputs:
       reset-results:
-        description: 'Reset the results'
+        description: |
+          If set to true, the results will be reset and the previous results will overwritten.
         required: false
         default: 'false'
       test-duration:
-        description: 'Duration of the test'
+        description: |
+          The duration of the test in seconds.
         required: false
         default: '60s'
-
+        options:
+          - '15s'
+          - '30s'
+          - '60s'
+          - '120s'
+      docker-compose-file:
+        description: |
+          The docker-compose file to use.
+        required: false
+        default: 'docker-compose.yml'
+        options:
+          - 'docker-compose.yml'
+          - 'docker-compose-tmp-mounted.yml'
+      chroma-version:
+        description: |
+          The version of Chroma to test.
+        required: false
+        default: 'main'
 
 permissions:
   contents: read
@@ -52,7 +71,7 @@ jobs:
         run: |
           set -e
           rm -rf chroma # remove the existing repo
-          git clone https://github.com/chroma-core/chroma.git
+          git clone -b ${{ github.event.inputs.chroma-version }} https://github.com/chroma-core/chroma.git
       - name: Pull dataset
         run: |
           set -e
@@ -73,7 +92,7 @@ jobs:
       - name: Docker compose
         run: |
           set -e
-          docker compose up -d --build
+          docker compose -f ${{ github.event.inputs.docker-compose-file }} up -d --build
       - name: Install dependencies
         run: |
           set -e
@@ -103,6 +122,7 @@ jobs:
           PERF_TEST_DURATION: ${{ github.event.inputs.test-duration }}
           PERF_TEST_DATASET: ${{ matrix.dataset }}
           PERF_TEST_RUN_ID: ${{ github.run_id }}
+          CHROMA_CONFIG_ID: ${{ github.event.input.docker-compose-file }}
       - name: Upload results to S3
         run: |
           set -e
@@ -136,4 +156,4 @@ jobs:
           rm -rf ./results
           rm -rf results.tar.gz
           rm -rf merged_locust_data.parquet
-          docker compose down --volumes
+          docker compose -f ${{ github.event.inputs.docker-compose-file }} down --volumes

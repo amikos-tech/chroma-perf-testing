@@ -24,6 +24,7 @@ def _(parser):
     parser.add_argument("--dataset", type=str, default=os.getenv("PERF_TEST_DATASET","unknown"), )
     parser.add_argument("--test-run-id", type=str, default=os.getenv("PERF_TEST_RUN_ID","local"), )
     parser.add_argument("--config-id", type=str, default=os.getenv("CHROMA_CONFIG_ID","local"), )
+    parser.add_argument("--chroma-version", type=str, default=os.getenv("CHROMA_VERSION","main"), )
 
 
 class UserBehavior(User):
@@ -68,6 +69,7 @@ class UserBehavior(User):
                 "dataset": self.environment.parsed_options.dataset,
                 "test_run_id": self.environment.parsed_options.test_run_id,
                 "config_id": self.environment.parsed_options.config_id,
+                "chroma_version": self.environment.parsed_options.chroma_version,
             },
             "exception": None,
         }
