@@ -6,12 +6,17 @@ on:
         description: |
           If set to true, the results will be reset and the previous results will overwritten.
         required: false
+        type: choice
+        options:
+          - 'true'
+          - 'false'
         default: 'false'
       test-duration:
         description: |
           The duration of the test in seconds.
         required: false
         default: '60s'
+        type: choice
         options:
           - '15s'
           - '30s'
@@ -22,6 +27,7 @@ on:
           The docker-compose file to use.
         required: false
         default: 'docker-compose.yml'
+        type: choice
         options:
           - 'docker-compose.yml'
           - 'docker-compose-tmp-mounted.yml'
@@ -29,8 +35,17 @@ on:
         description: |
           The version of Chroma to test.
         required: false
+        type: string
         default: 'main'
-
+      wal-cleanup:
+        description: |
+          If set to true, the WAL will be cleaned up.
+        required: false
+        type: choice
+        options:
+          - 'true'
+          - 'false'
+        default: 'false'
 permissions:
   contents: read
 
@@ -110,6 +125,11 @@ jobs:
             "http://localhost:8000/api/v1/collections/${COLLECTION_ID}" \
             -H 'accept: application/json' \
             -d '{"include":["embeddings"],"limit":1}'
+      - name: Cleanup WAL
+        if: ${{ github.event.inputs.wal-cleanup == 'true' }}
+        run: |
+          set -e
+          poetry run chops clean-wal ./chroma-data/chroma-data
       - name: Run tests
         run: |
           set -e
