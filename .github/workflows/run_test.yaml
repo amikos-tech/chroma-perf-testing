@@ -129,6 +129,7 @@ jobs:
         if: ${{ github.event.inputs.wal-cleanup == 'true' }}
         run: |
           set -e
+          export PATH="$HOME/.local/bin:$PATH" #hacky but works
           poetry run chops clean-wal ./chroma-data/chroma-data
       - name: Run tests
         run: |
